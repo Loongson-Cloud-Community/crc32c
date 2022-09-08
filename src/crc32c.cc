@@ -10,6 +10,8 @@
 #include "./crc32c_arm64.h"
 #include "./crc32c_arm64_check.h"
 #include "./crc32c_internal.h"
+#include "./crc32c_loongarch.h"
+#include "./crc32c_loongarch_check.h"
 #include "./crc32c_sse42.h"
 #include "./crc32c_sse42_check.h"
 
@@ -22,6 +24,9 @@ uint32_t Extend(uint32_t crc, const uint8_t* data, size_t count) {
 #elif HAVE_ARM64_CRC32C
   static bool can_use_arm64_crc32 = CanUseArm64Crc32();
   if (can_use_arm64_crc32) return ExtendArm64(crc, data, count);
+#elif HAVE_LOONGARCH_CRC32C
+  static bool can_use_loongarch_crc32 = CanUseLoongArchCrc32();
+  if (can_use_loongarch_crc32) return ExtendLoongArch(crc, data, count);
 #endif  // HAVE_SSE42 && (defined(_M_X64) || defined(__x86_64__))
 
   return ExtendPortable(crc, data, count);
