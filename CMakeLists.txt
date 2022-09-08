@@ -156,6 +156,17 @@ int main() {
 " HAVE_ARM64_CRC32C)
 set(CMAKE_REQUIRED_FLAGS ${OLD_CMAKE_REQURED_FLAGS})
 
+# Check for LoongArch hardware crc32c instruction support in the compiler.
+check_cxx_source_compiles("
+#include <larchintrin.h>
+
+int main() {
+  int crc = 0;
+  crc = __crcc_w_b_w('c', crc);
+  return 0;
+}
+" HAVE_LOONGARCH_CRC32C)
+
 # Check for strong getauxval() support in the system headers.
 check_cxx_source_compiles("
 #include <arm_acle.h>
@@ -240,6 +251,20 @@ if(BUILD_SHARED_LIBS)
   set_property(TARGET crc32c_arm64 PROPERTY POSITION_INDEPENDENT_CODE TRUE)
 endif(BUILD_SHARED_LIBS)
 
+# LOONGARCH CRC32C code is built separately.
+add_library(crc32c_loongarch OBJECT "")
+target_sources(crc32c_loongarch
+  PRIVATE
+    "${PROJECT_BINARY_DIR}/include/crc32c/crc32c_config.h"
+    "src/crc32c_loongarch.cc"
+    "src/crc32c_loongarch.h"
+)
+
+# CMake only enables PIC by default in SHARED and MODULE targets.
+if(BUILD_SHARED_LIBS)
+  set_property(TARGET crc32c_loongarch PROPERTY POSITION_INDEPENDENT_CODE TRUE)
+endif(BUILD_SHARED_LIBS)
+
 # SSE4.2 code is built separately, so we don't accidentally compile unsupported
 # instructions into code that gets run without SSE4.2 support.
 add_library(crc32c_sse42 OBJECT "")
@@ -269,6 +294,7 @@ add_library(crc32c ""
   # TODO(pwnall): Move the TARGET_OBJECTS generator expressions to the PRIVATE
   # section of target_sources when cmake_minimum_required becomes 3.9 or above.
   $<TARGET_OBJECTS:crc32c_arm64>
+  $<TARGET_OBJECTS:crc32c_loongarch>
   $<TARGET_OBJECTS:crc32c_sse42>
 )
 target_sources(crc32c
@@ -277,6 +303,8 @@ target_sources(crc32c
     "src/crc32c_arm64.h"
     "src/crc32c_arm64_check.h"
     "src/crc32c_internal.h"
+    "src/crc32c_loongarch.h"
+    "src/crc32c_loongarch_check.h"
     "src/crc32c_portable.cc"
     "src/crc32c_prefetch.h"
     "src/crc32c_read_le.h"
@@ -331,6 +359,7 @@ if(CRC32C_BUILD_TESTS)
       "${PROJECT_BINARY_DIR}/include/crc32c/crc32c_config.h"
       "src/crc32c_arm64_unittest.cc"
       "src/crc32c_extend_unittests.h"
+      "src/crc32c_loongarch_unittest.cc"
       "src/crc32c_portable_unittest.cc"
       "src/crc32c_prefetch_unittest.cc"
       "src/crc32c_read_le_unittest.cc"

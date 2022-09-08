@@ -22,6 +22,10 @@
 // the vmull_p64 intrinsics.
 #cmakedefine01 HAVE_ARM64_CRC32C
 
+// Define to 1 if targeting LoongArch and the compiler has the
+// __crcc_w_{b,h,w,d}_w intrinsics.
+#cmakedefine01 HAVE_LOONGARCH_CRC32C
+
 // Define to 1 if the system libraries have the getauxval function in the
 // <sys/auxv.h> header. Should be true on Linux and Android API level 20+.
 #cmakedefine01 HAVE_STRONG_GETAUXVAL
